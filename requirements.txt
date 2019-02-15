@@ -1,2 +1,4 @@
 falcon
+falcon-autocrud
 gunicorn
+SQLAlchemy

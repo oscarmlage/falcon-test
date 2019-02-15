@@ -1,4 +1,10 @@
 import falcon
+from falcon_autocrud.resource import CollectionResource, SingleResource
+
+from middleware import DatabaseSessionManager
+from database import db_session, init_session, engine
+
+from models import Note
 
 
 class ObjReq:
@@ -33,7 +39,25 @@ class QuoteResource:
         resp.media = quote
 
 
-api = falcon.API()
+class NoteCollectionResource(CollectionResource):
+    model = Note
+    methods = ['GET', 'POST']
+
+
+class NoteResource(SingleResource):
+    model = Note
+    default_sort = ['title']
+
+
+init_session()
+
+middleware = [DatabaseSessionManager(db_session)]
+
+api = falcon.API(middleware=middleware)
+
 api.add_route('/two', ObjReq())
 api.add_route('/one', ObjReqNew())
 api.add_route('/quote', QuoteResource())
+
+api.add_route('/notes', NoteCollectionResource(engine))
+api.add_route('/notes/{id}', NoteResource(engine))

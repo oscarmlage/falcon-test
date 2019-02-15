@@ -1,8 +1,8 @@
 import falcon
+from sqlalchemy import create_engine
 from falcon_autocrud.resource import CollectionResource, SingleResource
+from falcon_autocrud.middleware import Middleware
 
-from middleware import DatabaseSessionManager
-from database import db_session, init_session, engine
 
 from models import Note
 
@@ -49,15 +49,12 @@ class NoteResource(SingleResource):
     default_sort = ['title']
 
 
-init_session()
+db_engine = create_engine('sqlite:///stuff.db')
+api = falcon.API(middleware=Middleware())
 
-middleware = [DatabaseSessionManager(db_session)]
-
-api = falcon.API(middleware=middleware)
-
-api.add_route('/two', ObjReq())
-api.add_route('/one', ObjReqNew())
+api.add_route('/one', ObjReq())
+api.add_route('/two', ObjReqNew())
 api.add_route('/quote', QuoteResource())
 
-api.add_route('/notes', NoteCollectionResource(engine))
-api.add_route('/notes/{id}', NoteResource(engine))
+api.add_route('/notes', NoteCollectionResource(db_engine))
+api.add_route('/notes/{id}', NoteResource(db_engine))
